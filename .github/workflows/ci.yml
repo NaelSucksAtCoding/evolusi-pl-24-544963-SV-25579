@@ -1,16 +1,16 @@
-name: CI # nama di tab Actions
+name: Laravel CI/CD # nama di tab Actions
 
 on: # pemicu
-  push:
-    branches: [main, dev]
+  push: # semua branch, termasuk branch fitur
   pull_request:
+    branches: [main, dev]
 
 permissions:
   contents: read
 
 jobs:
-  lint:
-    name: Lint (Pint)
+  build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -35,8 +35,9 @@ jobs:
         run: vendor/bin/pint --test
 
   test:
-    name: Test (PHPUnit)
+    name: Run Tests
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - uses: actions/checkout@v7
 
@@ -46,7 +47,7 @@ jobs:
           php-version: '8.3'
           coverage: none
 
-      - name: Cache dependensi Composer
+      - name: Ambil dependensi dari cache
         uses: actions/cache@v6
         with:
           path: vendor
@@ -63,3 +64,30 @@ jobs:
 
       - name: Jalankan pengujian
         run: php artisan test
+
+  staging:
+    name: Staging Deploy
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Deploy ke staging
+        run: echo "Deploying to staging server... (echo only)"
+
+  production:
+    name: Production Deploy
+    runs-on: ubuntu-latest
+    needs: staging
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Langkah deploy (deploy.sh)
+        run: |
+          echo "Starting deployment..."
+          echo "1. Turn on maintenance mode (php artisan down)"
+          echo "2. Pull latest code from main branch (git pull origin main)"
+          echo "3. Install dependencies (composer install --no-dev)"
+          echo "4. Clear and cache routes, config, and views (php artisan optimize:clear, config:cache, route:cache, view:cache)"
+          echo "5. Run database migrations (php artisan migrate --force)"
+          echo "6. Install and build front-end assets (npm ci && npm run build)"
+          echo "7. Turn off maintenance mode (php artisan up)"
+          echo "Deployment finished successfully!"
