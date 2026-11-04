@@ -1,0 +1,30 @@
+# Hasil turunan: dipasang ulang di dalam image
+node_modules
+vendor
+frontend
+public/build
+public/hot
+
+# Riwayat Git dan rahasia tidak boleh masuk image
+.git
+.github
+.env
+.env.*
+!.env.example
+
+# Data dan sisa lokal
+database/*.sqlite
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*.php
+.phpunit.result.cache
+
+# Tidak dipakai saat aplikasi berjalan
+tests
+Dockerfile
+.dockerignore
+*.md
+.vscode
+.idea
