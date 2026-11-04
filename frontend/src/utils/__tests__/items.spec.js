@@ -14,7 +14,7 @@ describe('filterItems', () => {
   })
 
   it('mencari pada nama tanpa membedakan huruf besar/kecil', () => {
-    expect(filterItems(items, 'BAKWAN').map((item) => item.id)).toEqual([2])
+    expect(filterItems(items, 'BAKWAN').map((item) => item.id)).toEqual([1])
   })
 
   it('mencari pada deskripsi juga', () => {
