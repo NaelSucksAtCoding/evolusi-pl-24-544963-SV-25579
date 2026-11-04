@@ -13,7 +13,7 @@ jobs:
     name: Lint (Pint)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Siapkan PHP 8.3
         uses: shivammathur/setup-php@v2
@@ -22,7 +22,7 @@ jobs:
           coverage: none
 
       - name: Cache dependensi Composer
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: vendor
           key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
@@ -38,7 +38,7 @@ jobs:
     name: Test (PHPUnit)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Siapkan PHP 8.3
         uses: shivammathur/setup-php@v2
@@ -47,7 +47,7 @@ jobs:
           coverage: none
 
       - name: Cache dependensi Composer
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: vendor
           key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
