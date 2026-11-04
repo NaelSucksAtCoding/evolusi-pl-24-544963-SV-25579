@@ -1,0 +1,112 @@
+name: Frontend CI/CD # nama di tab Actions
+
+on: # pemicu
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Frontend Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Siapkan Node.js 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Pasang dependensi
+        run: npm ci
+
+      - name: Periksa kode (oxlint + ESLint)
+        run: npm run lint
+
+  test:
+    name: Frontend Test
+    runs-on: ubuntu-latest
+    needs: lint
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Siapkan Node.js 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Pasang dependensi
+        run: npm ci
+
+      - name: Jalankan unit test Vitest
+        run: npm test
+
+  build:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    needs: test
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      # Alamat API diambil dari repository variable; bawaannya Laravel lokal
+      VITE_API_URL: ${{ vars.VITE_API_URL || 'http://127.0.0.1:8000' }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Siapkan Node.js 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Pasang dependensi
+        run: npm ci
+
+      - name: Build produksi
+        run: npm run build
+
+      - name: Simpan dist/ sebagai artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+          retention-days: 7
+
+  deploy:
+    name: Frontend Deploy
+    runs-on: ubuntu-latest
+    needs: build
+    # hanya dari push ke main; Pull Request berhenti setelah build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      # sengaja tanpa checkout dan tanpa npm: yang di-deploy adalah hasil job build
+      - name: Ambil artifact dist/ dari job build
+        uses: actions/download-artifact@v8
+        with:
+          name: frontend-dist
+          path: dist
+
+      - name: Tampilkan isi dist/
+        run: |
+          echo "Isi dist/ yang akan di-deploy:"
+          find dist -type f | sort
+          echo "Total ukuran: $(du -sh dist | cut -f1)"
+
+      - name: Deploy ke hosting statis
+        run: echo "Deploying dist/ to static hosting... (echo only)"
