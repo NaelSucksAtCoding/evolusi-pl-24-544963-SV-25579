@@ -68,6 +68,24 @@ Build ──▶ Run Tests ──▶ Staging Deploy ──▶ Production Deploy
 Langkah deploy sebenarnya ada di [`deploy.sh`](deploy.sh) dan memakai `set -e`, sehingga deploy langsung
 berhenti bila satu langkah gagal.
 
+## Frontend Vue
+
+Folder [`frontend/`](frontend/) berisi aplikasi Vue 3 yang mengambil data dari endpoint JSON
+`GET /api/items`. Cara menjalankannya ada di [frontend/README.md](frontend/README.md).
+
+Workflow terpisah, [`frontend.yml`](.github/workflows/frontend.yml):
+
+```
+Frontend Lint ──▶ Frontend Test ──▶ Frontend Build ──▶ Frontend Deploy
+```
+
+| Job | Isi | Kapan jalan |
+|---|---|---|
+| Frontend Lint | `npm ci` lalu oxlint + ESLint | setiap push ke `main`/`dev` dan setiap PR |
+| Frontend Test | unit test Vitest, tanpa Laravel | setelah Lint lulus |
+| Frontend Build | `npm run build`, `dist/` disimpan sebagai artifact | setelah Test lulus |
+| Frontend Deploy | mengambil artifact `dist/` (tanpa build ulang) lalu menampilkan isinya | hanya push ke `main` |
+
 ## Pesan commit
 
 Mengikuti [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `docs:`,
