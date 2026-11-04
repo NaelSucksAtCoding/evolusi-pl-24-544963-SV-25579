@@ -50,7 +50,23 @@ feature/<nama>  ──PR──▶  dev  ──PR──▶  main
 - `feature/<nama>` — satu fitur per branch, dibuat dari `dev`.
 
 `main` dan `dev` dilindungi *branch protection rule*: perubahan hanya bisa masuk lewat Pull Request
-dan kedua job CI (**Lint (Pint)** dan **Test (PHPUnit)**) wajib hijau.
+dan job **Build** serta **Run Tests** wajib hijau.
+
+## Pipeline CI/CD
+
+```
+Build ──▶ Run Tests ──▶ Staging Deploy ──▶ Production Deploy
+```
+
+| Job | Isi | Kapan jalan |
+|---|---|---|
+| Build | `composer install` dan pemeriksaan gaya kode (Pint) | setiap push dan PR |
+| Run Tests | `php artisan test` | setelah Build lulus |
+| Staging Deploy | deploy ke staging (masih `echo`) | setelah Run Tests lulus |
+| Production Deploy | tujuh langkah `deploy.sh` (masih `echo`) | hanya dari `main`, setelah disetujui reviewer di environment `production` |
+
+Langkah deploy sebenarnya ada di [`deploy.sh`](deploy.sh) dan memakai `set -e`, sehingga deploy langsung
+berhenti bila satu langkah gagal.
 
 ## Pesan commit
 
