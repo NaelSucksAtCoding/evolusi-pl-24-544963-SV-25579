@@ -32,6 +32,20 @@ php artisan serve
 
 Buka <http://127.0.0.1:8000>.
 
+## Menjalankan dengan Docker
+
+```bash
+docker build -t evolusi-pl .
+docker run -d --name evolusi-pl -p 8090:80 evolusi-pl
+```
+
+Buka <http://localhost:8090> untuk halaman CRUD dan <http://localhost:8090/api/items> untuk API JSON.
+Saat container pertama kali jalan, [`docker/entrypoint.sh`](docker/entrypoint.sh) membuat `.env` dari
+`.env.example`, menjalankan migrasi SQLite, dan mengisi data contoh.
+
+Urutan [`Dockerfile`](Dockerfile) disusun agar cache bekerja: `composer.json` dan `composer.lock` disalin
+dan dipasang **sebelum** kode aplikasi. Mengubah kode tidak memasang ulang dependensi.
+
 ## Pengujian
 
 ```bash
