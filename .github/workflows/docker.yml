@@ -1,0 +1,45 @@
+name: Docker Image # nama di tab Actions
+
+on: # pemicu
+  push:
+    branches: [main] # image hanya diterbitkan dari main
+  pull_request:
+    branches: [main, dev] # di PR image cukup dibangun, tidak didorong
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write # izin GITHUB_TOKEN untuk mendorong ke GHCR
+
+jobs:
+  image:
+    name: Build & Push Image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Nama image di GHCR wajib huruf kecil, padahal nama akun dan repo ini memuat huruf besar.
+      - name: Tentukan nama image
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Siapkan Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login ke GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build dan push image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
